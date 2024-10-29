@@ -34,6 +34,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Whitelist
   document.getElementById('addToWhitelist').addEventListener('click', addToWhitelist);
+
+  // Add instant cleanup button handler
+  document.getElementById('instantCleanup').addEventListener('click', handleInstantCleanup);
 });
 
 async function loadSettings() {
@@ -174,4 +177,97 @@ async function restoreTab(tab) {
   const updatedTabs = recentlyClosed.filter(t => t.notificationId !== tab.notificationId);
   await chrome.storage.local.set({ recentlyClosed: updatedTabs });
   loadRecentlyClosed();
-} 
+}
+
+async function handleInstantCleanup() {
+  const button = document.getElementById('instantCleanup');
+  button.classList.add('loading');
+  button.disabled = true;
+  
+  try {
+    // Check if background script is available
+    if (!chrome.runtime.getManifest()) {
+      throw new Error('Extension context invalid');
+    }
+
+    // Get current settings
+    const { settings } = await chrome.storage.local.get('settings');
+    
+    // Send message with retry logic
+    const sendMessageWithRetry = async (retries = 3) => {
+      try {
+        return await new Promise((resolve, reject) => {
+          const timeout = setTimeout(() => {
+            reject(new Error('Request timed out'));
+          }, 5000);
+
+          chrome.runtime.sendMessage(
+            { action: 'instantCleanup', settings },
+            (response) => {
+              clearTimeout(timeout);
+              if (chrome.runtime.lastError) {
+                reject(new Error(chrome.runtime.lastError.message));
+              } else {
+                resolve(response);
+              }
+            }
+          );
+        });
+      } catch (error) {
+        if (retries > 0) {
+          await new Promise(resolve => setTimeout(resolve, 1000));
+          return sendMessageWithRetry(retries - 1);
+        }
+        throw error;
+      }
+    };
+
+    const result = await sendMessageWithRetry();
+    
+    if (result && result.success && result.closedCount > 0) {
+      showNotification(`Closed ${result.closedCount} inactive tab(s)`);
+    } else if (result && result.success) {
+      showNotification('No inactive tabs found');
+    } else {
+      throw new Error(result.error || 'Failed to clean up tabs');
+    }
+  } catch (error) {
+    console.error('Cleanup failed:', error);
+    showNotification('Failed to clean up tabs: ' + error.message);
+  } finally {
+    button.classList.remove('loading');
+    button.disabled = false;
+  }
+}
+
+function showNotification(message) {
+  const notification = document.createElement('div');
+  notification.className = 'notification';
+  notification.textContent = message;
+  document.body.appendChild(notification);
+  
+  setTimeout(() => {
+    notification.classList.add('fade-out');
+    setTimeout(() => notification.remove(), 300);
+  }, 2000);
+}
+
+// Add this to your existing styles.css
+const styles = `
+.notification {
+  position: fixed;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #333;
+  color: white;
+  padding: 8px 16px;
+  border-radius: 4px;
+  z-index: 1000;
+}
+
+.notification.fade-out {
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+`; 

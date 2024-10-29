@@ -5,10 +5,15 @@
   "description": "Automatically manages and closes inactive tabs based on user preferences",
   "permissions": [
     "tabs",
+    "tabGroups",
     "storage",
     "history",
     "notifications",
-    "alarms"
+    "alarms",
+    "background"
+  ],
+  "host_permissions": [
+    "<all_urls>"
   ],
   "action": {
     "default_popup": "popup.html",
@@ -19,7 +24,8 @@
     }
   },
   "background": {
-    "service_worker": "background.js"
+    "service_worker": "background.js",
+    "persistent": true
   },
   "icons": {
     "16": "icons/icon16.svg",
