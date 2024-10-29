@@ -128,7 +128,7 @@ async function loadWhitelist() {
     const li = document.createElement('li');
     li.textContent = domain;
     const removeBtn = document.createElement('span');
-    removeBtn.textContent = '×';
+    removeBtn.innerHTML = '<i class="material-icons">close</i>';
     removeBtn.className = 'remove-btn';
     removeBtn.onclick = () => removeFromWhitelist(domain);
     li.appendChild(removeBtn);
@@ -143,7 +143,7 @@ async function loadRecentlyClosed() {
 
   if (!recentlyClosed || recentlyClosed.length === 0) {
     const li = document.createElement('li');
-    li.textContent = 'No recently closed tabs';
+    li.innerHTML = '<i class="material-icons">info</i> No recently closed tabs';
     li.className = 'no-tabs';
     container.appendChild(li);
     return;
@@ -158,7 +158,7 @@ async function loadRecentlyClosed() {
     title.textContent = tab.title;
     
     const restoreBtn = document.createElement('button');
-    restoreBtn.textContent = 'Restore';
+    restoreBtn.innerHTML = '<i class="material-icons">restore</i> Restore';
     restoreBtn.className = 'restore-btn';
     restoreBtn.onclick = () => restoreTab(tab);
     

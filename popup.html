@@ -3,14 +3,15 @@
 <head>
   <title>Chrome Tab Cleanup</title>
   <link rel="stylesheet" href="styles.css">
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
 </head>
 <body>
   <div class="container">
-    <h2>Tab Cleanup Settings</h2>
+    <h2><i class="material-icons">tab</i> Tab Cleanup Settings</h2>
     
     <!-- Predefined Time Frames -->
     <div class="section">
-      <h3>Quick Close</h3>
+      <h3><i class="material-icons">schedule</i> Quick Close</h3>
       <button data-time="1">1 Day</button>
       <button data-time="7">1 Week</button>
       <button data-time="30">1 Month</button>
@@ -18,7 +19,7 @@
 
     <!-- Custom Time Period -->
     <div class="section">
-      <h3>Custom Time Period</h3>
+      <h3><i class="material-icons">timer</i> Custom Time Period</h3>
       <input type="number" id="customTime" min="1">
       <select id="timeUnit">
         <option value="minutes">Minutes</option>
@@ -30,15 +31,15 @@
 
     <!-- Whitelist -->
     <div class="section">
-      <h3>Whitelist</h3>
+      <h3><i class="material-icons">security</i> Whitelist</h3>
       <input type="text" id="whitelistInput" placeholder="Enter domain or URL">
-      <button id="addToWhitelist">Add</button>
+      <button id="addToWhitelist"><i class="material-icons">add</i> Add</button>
       <ul id="whitelistItems"></ul>
     </div>
 
     <!-- Recently Closed -->
     <div class="section">
-      <h3>Recently Closed Tabs</h3>
+      <h3><i class="material-icons">history</i> Recently Closed Tabs</h3>
       <ul id="recentlyClosed"></ul>
     </div>
   </div>

@@ -131,4 +131,47 @@ li:last-child {
   0% { opacity: 1; }
   70% { opacity: 1; }
   100% { opacity: 0; }
+}
+
+/* Add these styles to the existing styles.css */
+.material-icons {
+  font-size: 18px;
+  vertical-align: middle;
+  margin-right: 5px;
+}
+
+h2 .material-icons {
+  font-size: 24px;
+  color: #1976D2;
+}
+
+button .material-icons {
+  font-size: 16px;
+  margin-right: 2px;
+}
+
+.remove-btn {
+  color: #ff4444;
+  cursor: pointer;
+  font-weight: bold;
+  padding: 0 5px;
+}
+
+.remove-btn .material-icons {
+  font-size: 18px;
+  margin: 0;
+}
+
+/* Update existing button styles */
+button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Update the restore button style */
+.restore-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
 } 
