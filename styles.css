@@ -1,0 +1,134 @@
+.container {
+  width: 350px;
+  padding: 15px;
+  font-family: Arial, sans-serif;
+}
+
+.section {
+  margin-bottom: 20px;
+  padding: 10px;
+  border: 1px solid #eee;
+  border-radius: 5px;
+}
+
+h2 {
+  margin-top: 0;
+  color: #333;
+}
+
+h3 {
+  margin-top: 0;
+  color: #666;
+  font-size: 14px;
+}
+
+button {
+  margin: 5px;
+  padding: 8px 12px;
+  cursor: pointer;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  background: #f8f8f8;
+  transition: all 0.2s;
+}
+
+button:hover {
+  background: #eee;
+}
+
+button.active {
+  background: #4CAF50;
+  color: white;
+  border-color: #45a049;
+}
+
+input {
+  margin: 5px 0;
+  padding: 8px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  width: 200px;
+}
+
+select {
+  padding: 8px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  margin: 5px;
+}
+
+ul {
+  list-style-type: none;
+  padding: 0;
+  max-height: 200px;
+  overflow-y: auto;
+}
+
+li {
+  padding: 8px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid #eee;
+}
+
+li:last-child {
+  border-bottom: none;
+}
+
+.remove-btn {
+  color: #ff4444;
+  cursor: pointer;
+  font-weight: bold;
+  padding: 0 5px;
+}
+
+.saved-message {
+  position: fixed;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #4CAF50;
+  color: white;
+  padding: 10px 20px;
+  border-radius: 4px;
+  animation: fadeOut 2s forwards;
+}
+
+.recently-closed-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px;
+}
+
+.tab-title {
+  flex: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  margin-right: 10px;
+}
+
+.restore-btn {
+  padding: 4px 8px;
+  font-size: 12px;
+  background: #2196F3;
+  color: white;
+  border: none;
+}
+
+.restore-btn:hover {
+  background: #1976D2;
+}
+
+.no-tabs {
+  color: #666;
+  font-style: italic;
+}
+
+@keyframes fadeOut {
+  0% { opacity: 1; }
+  70% { opacity: 1; }
+  100% { opacity: 0; }
+} 
