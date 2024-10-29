@@ -3,59 +3,36 @@ document.addEventListener('DOMContentLoaded', () => {
   loadWhitelist();
   loadRecentlyClosed();
 
-  // Quick close buttons
-  document.querySelectorAll('[data-time]').forEach(button => {
-    button.addEventListener('click', () => {
-      const days = parseInt(button.dataset.time);
-      updateSettings({ 
-        timeFrame: days,
-        customTime: null // Clear custom time when using quick close
-      });
-      highlightActiveButton(button);
-    });
-  });
+  // Instant cleanup button handler
+  document.getElementById('instantCleanup').addEventListener('click', handleInstantCleanup);
 
-  // Custom time period
-  document.getElementById('applyCustom').addEventListener('click', () => {
+  // Apply time settings
+  document.getElementById('applyTimeSettings').addEventListener('click', () => {
     const value = parseInt(document.getElementById('customTime').value);
     const unit = document.getElementById('timeUnit').value;
     
-    if (value > 0) {
-      updateSettings({
-        customTime: { value, unit },
-        timeFrame: null // Clear timeFrame when using custom time
-      });
-      // Clear quick close button highlights
-      document.querySelectorAll('[data-time]').forEach(btn => {
-        btn.classList.remove('active');
-      });
+    if (!value || value < 1) {
+      showNotification('Please enter a valid time period');
+      return;
     }
+
+    updateSettings({
+      timeSettings: { value, unit }
+    });
+    showNotification('Time settings updated');
   });
 
-  // Whitelist
+  // Whitelist handler
   document.getElementById('addToWhitelist').addEventListener('click', addToWhitelist);
-
-  // Add instant cleanup button handler
-  document.getElementById('instantCleanup').addEventListener('click', handleInstantCleanup);
 });
 
 async function loadSettings() {
   const { settings } = await chrome.storage.local.get('settings');
   
-  // Update custom time inputs
-  if (settings.customTime) {
-    document.getElementById('customTime').value = settings.customTime.value;
-    document.getElementById('timeUnit').value = settings.customTime.unit;
-    // Clear quick close button highlights
-    document.querySelectorAll('[data-time]').forEach(btn => {
-      btn.classList.remove('active');
-    });
-  } else if (settings.timeFrame) {
-    // Highlight active quick close button
-    const activeButton = document.querySelector(`[data-time="${settings.timeFrame}"]`);
-    if (activeButton) {
-      highlightActiveButton(activeButton);
-    }
+  // Populate time settings
+  if (settings.timeSettings) {
+    document.getElementById('customTime').value = settings.timeSettings.value;
+    document.getElementById('timeUnit').value = settings.timeSettings.unit;
   }
 }
 

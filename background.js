@@ -16,20 +16,19 @@ const UNDO_TIMEOUT = 1000 * 60 * 30; // 30 minutes for undo
 
 // Default settings
 const defaultSettings = {
-  timeFrame: 7, // days
   whitelist: [],
-  customTime: {
+  timeSettings: {
     value: 1,
-    unit: 'days'
+    unit: 'weeks'
   }
 };
 
 // Utility function to convert time periods to milliseconds
 function convertToMilliseconds(value, unit) {
   const conversions = {
-    minutes: value * 60 * 1000,
-    hours: value * 60 * 60 * 1000,
-    days: value * 24 * 60 * 60 * 1000
+    days: value * 24 * 60 * 60 * 1000,
+    weeks: value * 7 * 24 * 60 * 60 * 1000,
+    months: value * 30 * 24 * 60 * 60 * 1000 // approximating month to 30 days
   };
   return conversions[unit] || conversions.days;
 }
@@ -52,9 +51,7 @@ const messageHandlers = {
       const currentTime = Date.now();
       let closedCount = 0;
       
-      const inactivityThreshold = settings.customTime 
-        ? convertToMilliseconds(settings.customTime.value, settings.customTime.unit)
-        : convertToMilliseconds(settings.timeFrame, 'days');
+      const inactivityThreshold = settings.timeSettings.value * 7 * 24 * 60 * 60 * 1000; // Convert weeks to milliseconds
 
       for (const tab of tabs) {
         if (await shouldCloseTab(tab, settings, currentTime, inactivityThreshold)) {

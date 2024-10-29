@@ -17,24 +17,20 @@
       </button>
     </div>
     
-    <!-- Predefined Time Frames -->
+    <!-- Time Period Settings -->
     <div class="section">
-      <h3><i class="material-icons">schedule</i> Quick Close</h3>
-      <button data-time="1">1 Day</button>
-      <button data-time="7">1 Week</button>
-      <button data-time="30">1 Month</button>
-    </div>
-
-    <!-- Custom Time Period -->
-    <div class="section">
-      <h3><i class="material-icons">timer</i> Custom Time Period</h3>
-      <input type="number" id="customTime" min="1">
-      <select id="timeUnit">
-        <option value="minutes">Minutes</option>
-        <option value="hours">Hours</option>
-        <option value="days">Days</option>
-      </select>
-      <button id="applyCustom">Apply</button>
+      <h3><i class="material-icons">timer</i> Time Period</h3>
+      <div class="time-input-group">
+        <input type="number" id="customTime" min="1" placeholder="Enter number">
+        <select id="timeUnit">
+          <option value="days">Days</option>
+          <option value="weeks">Weeks</option>
+          <option value="months">Months</option>
+        </select>
+        <button id="applyTimeSettings" class="secondary-button">
+          <i class="material-icons">check</i> Apply
+        </button>
+      </div>
     </div>
 
     <!-- Whitelist -->
