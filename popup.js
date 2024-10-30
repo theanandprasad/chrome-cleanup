@@ -24,6 +24,21 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Whitelist handler
   document.getElementById('addToWhitelist').addEventListener('click', addToWhitelist);
+
+  // Resource monitoring toggle
+  const resourceAlertsToggle = document.getElementById('enableResourceAlerts');
+  resourceAlertsToggle.addEventListener('change', async (e) => {
+    await chrome.storage.local.set({ 
+      resourceAlerts: e.target.checked 
+    });
+    showNotification(e.target.checked ? 
+      'Resource monitoring enabled' : 
+      'Resource monitoring disabled'
+    );
+  });
+
+  // Load resource monitoring state
+  loadResourceInfo();
 });
 
 async function loadSettings() {
@@ -227,6 +242,38 @@ function showNotification(message) {
     notification.classList.add('fade-out');
     setTimeout(() => notification.remove(), 300);
   }, 2000);
+}
+
+async function loadResourceInfo() {
+  // Load toggle state
+  const { resourceAlerts } = await chrome.storage.local.get('resourceAlerts');
+  document.getElementById('enableResourceAlerts').checked = resourceAlerts ?? true;
+
+  try {
+    // Update memory usage
+    const memoryInfo = await chrome.system.memory.getInfo();
+    const memoryUsage = Math.round(
+      ((memoryInfo.capacity - memoryInfo.availableCapacity) / memoryInfo.capacity) * 100
+    );
+    document.getElementById('memoryUsage').textContent = 
+      `Memory Usage: ${memoryUsage}%`;
+
+    // Update CPU usage
+    const cpuInfo = await chrome.system.cpu.getInfo();
+    const cpuUsage = Math.round(
+      (cpuInfo.processors.reduce((acc, processor) => 
+        acc + processor.usage.user / processor.usage.total, 0) / cpuInfo.numOfProcessors) * 100
+    );
+    document.getElementById('cpuUsage').textContent = 
+      `CPU Usage: ${cpuUsage}%`;
+
+    // Update tab count
+    const tabs = await chrome.tabs.query({});
+    document.getElementById('tabCount').textContent = 
+      `Open Tabs: ${tabs.length}`;
+  } catch (error) {
+    console.error('Error loading resource info:', error);
+  }
 }
 
 // Add this to your existing styles.css

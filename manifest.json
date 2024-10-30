@@ -10,7 +10,9 @@
     "history",
     "notifications",
     "alarms",
-    "background"
+    "background",
+    "system.memory",
+    "system.cpu"
   ],
   "host_permissions": [
     "<all_urls>"

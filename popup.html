@@ -46,6 +46,23 @@
       <h3><i class="material-icons">history</i> Recently Closed Tabs</h3>
       <ul id="recentlyClosed"></ul>
     </div>
+
+    <!-- Add this section after the Time Period section -->
+    <div class="section">
+      <h3><i class="material-icons">memory</i> Resource Monitoring</h3>
+      <div class="resource-settings">
+        <label class="switch">
+          <input type="checkbox" id="enableResourceAlerts">
+          <span class="slider round"></span>
+        </label>
+        <span>Enable resource usage alerts</span>
+      </div>
+      <div class="resource-info">
+        <div id="memoryUsage">Memory Usage: Checking...</div>
+        <div id="cpuUsage">CPU Usage: Checking...</div>
+        <div id="tabCount">Open Tabs: Checking...</div>
+      </div>
+    </div>
   </div>
   <script src="popup.js"></script>
 </body>
