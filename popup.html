@@ -63,6 +63,32 @@
         <div id="tabCount">Open Tabs: Checking...</div>
       </div>
     </div>
+
+    <!-- Add this section after the Resource Monitoring section -->
+    <div class="section">
+      <h3>
+        <i class="material-icons">insights</i> Resource Insights
+        <button id="refreshInsights" class="icon-button">
+          <i class="material-icons">refresh</i>
+        </button>
+      </h3>
+      
+      <div class="insights-container">
+        <div class="tabs-insights">
+          <h4>Top Resource-Heavy Tabs</h4>
+          <div id="tabsList" class="insights-list">
+            <div class="loading">Loading tab data...</div>
+          </div>
+        </div>
+
+        <div class="extensions-insights">
+          <h4>Active Extensions</h4>
+          <div id="extensionsList" class="insights-list">
+            <div class="loading">Loading extension data...</div>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
   <script src="popup.js"></script>
 </body>

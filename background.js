@@ -233,3 +233,10 @@ chrome.notifications.onButtonClicked.addListener(async (notificationId, buttonIn
     }
   }
 });
+
+// Add this to your existing background.js
+chrome.action.onClicked.addListener(() => {
+  chrome.tabs.create({
+    url: 'dashboard.html'
+  });
+});

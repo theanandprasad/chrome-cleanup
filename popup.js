@@ -39,6 +39,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Load resource monitoring state
   loadResourceInfo();
+
+  // Load resource insights
+  loadResourceInsights();
+
+  // Add refresh button handler
+  document.getElementById('refreshInsights').addEventListener('click', () => {
+    loadResourceInsights();
+  });
 });
 
 async function loadSettings() {
@@ -274,6 +282,182 @@ async function loadResourceInfo() {
   } catch (error) {
     console.error('Error loading resource info:', error);
   }
+}
+
+async function loadResourceInsights() {
+  await Promise.all([
+    loadTabInsights(),
+    loadExtensionInsights()
+  ]);
+}
+
+async function loadTabInsights() {
+  const tabsList = document.getElementById('tabsList');
+  try {
+    const tabs = await chrome.tabs.query({});
+    const processInfo = await getTabsProcessInfo(tabs);
+    
+    // Sort tabs by estimated memory usage
+    const sortedTabs = tabs.sort((a, b) => {
+      const aMemory = processInfo[a.id]?.memory || 0;
+      const bMemory = processInfo[b.id]?.memory || 0;
+      return bMemory - aMemory;
+    });
+
+    // Display top 5 resource-heavy tabs
+    tabsList.innerHTML = sortedTabs.slice(0, 5).map(tab => {
+      const process = processInfo[tab.id] || { memory: 0, cpu: 0 };
+      return `
+        <div class="resource-item" data-tab-id="${tab.id}">
+          <div class="resource-info">
+            <div class="resource-title" title="${tab.title}">${tab.title}</div>
+            <div class="resource-stats">
+              <span class="memory-usage">Est. Memory: ${formatMemory(process.memory)}</span> | 
+              <span class="cpu-usage">Est. CPU: ${process.cpu.toFixed(1)}%</span>
+            </div>
+          </div>
+          <div class="resource-actions">
+            <button class="icon-button close-tab" title="Close Tab">
+              <i class="material-icons">close</i>
+            </button>
+          </div>
+        </div>
+      `;
+    }).join('') || '<div class="loading">No tabs data available</div>';
+
+    // Add event listeners for tab actions
+    addTabActionListeners();
+  } catch (error) {
+    console.error('Error loading tab insights:', error);
+    tabsList.innerHTML = '<div class="loading">Error loading tab data</div>';
+  }
+}
+
+async function loadExtensionInsights() {
+  const extensionsList = document.getElementById('extensionsList');
+  try {
+    const extensions = await chrome.management.getAll();
+    const enabledExtensions = extensions.filter(ext => ext.enabled);
+
+    extensionsList.innerHTML = enabledExtensions.map(ext => `
+      <div class="resource-item" data-extension-id="${ext.id}">
+        <div class="resource-info">
+          <div class="resource-title" title="${ext.name}">${ext.name}</div>
+          <div class="resource-stats">
+            ${ext.type} | ${ext.version}
+          </div>
+        </div>
+        <div class="resource-actions">
+          <button class="icon-button toggle-extension" title="Toggle Extension">
+            <i class="material-icons">power_settings_new</i>
+          </button>
+        </div>
+      </div>
+    `).join('') || '<div class="loading">No extensions data available</div>';
+
+    // Add event listeners for extension actions
+    addExtensionActionListeners();
+  } catch (error) {
+    console.error('Error loading extension insights:', error);
+    extensionsList.innerHTML = '<div class="loading">Error loading extension data</div>';
+  }
+}
+
+async function getTabsProcessInfo(tabs) {
+  const processInfo = {};
+  
+  for (const tab of tabs) {
+    try {
+      // Use a simpler metric based on tab properties
+      processInfo[tab.id] = {
+        memory: estimateTabMemory(tab), // Estimate based on tab properties
+        cpu: estimateTabCPU(tab)        // Estimate based on tab type
+      };
+    } catch (error) {
+      console.error(`Error getting info for tab ${tab.id}:`, error);
+    }
+  }
+  
+  return processInfo;
+}
+
+// Helper function to estimate tab memory usage
+function estimateTabMemory(tab) {
+  // Basic estimation based on tab properties
+  let baseMemory = 50 * 1024 * 1024; // Base memory: 50MB
+  
+  // Add memory for media tabs
+  if (tab.audible) {
+    baseMemory += 100 * 1024 * 1024; // Additional 100MB for audio
+  }
+  
+  // Add memory based on URL type
+  if (tab.url) {
+    if (tab.url.includes('youtube.com')) {
+      baseMemory += 200 * 1024 * 1024; // Additional 200MB for YouTube
+    } else if (tab.url.includes('google.com/maps')) {
+      baseMemory += 150 * 1024 * 1024; // Additional 150MB for Maps
+    }
+  }
+  
+  return baseMemory;
+}
+
+// Helper function to estimate tab CPU usage
+function estimateTabCPU(tab) {
+  // Basic CPU usage estimation
+  let cpuUsage = 1; // Base CPU usage: 1%
+  
+  // Add CPU usage for active media
+  if (tab.audible) {
+    cpuUsage += 5; // Additional 5% for audio
+  }
+  
+  // Add CPU usage based on URL type
+  if (tab.url) {
+    if (tab.url.includes('youtube.com')) {
+      cpuUsage += 10; // Additional 10% for YouTube
+    } else if (tab.url.includes('google.com/maps')) {
+      cpuUsage += 8; // Additional 8% for Maps
+    }
+  }
+  
+  return cpuUsage;
+}
+
+function formatMemory(bytes) {
+  if (!bytes) return '0 MB';
+  const mb = bytes / (1024 * 1024);
+  return `${mb.toFixed(1)} MB`;
+}
+
+function addTabActionListeners() {
+  document.querySelectorAll('.close-tab').forEach(button => {
+    button.addEventListener('click', async (e) => {
+      const tabId = parseInt(e.target.closest('.resource-item').dataset.tabId);
+      try {
+        await chrome.tabs.remove(tabId);
+        loadTabInsights(); // Refresh the list
+      } catch (error) {
+        console.error('Error closing tab:', error);
+      }
+    });
+  });
+}
+
+function addExtensionActionListeners() {
+  document.querySelectorAll('.toggle-extension').forEach(button => {
+    button.addEventListener('click', async (e) => {
+      const extensionId = e.target.closest('.resource-item').dataset.extensionId;
+      try {
+        const extension = await chrome.management.get(extensionId);
+        await chrome.management.setEnabled(extensionId, !extension.enabled);
+        loadExtensionInsights(); // Refresh the list
+      } catch (error) {
+        console.error('Error toggling extension:', error);
+      }
+    });
+  });
 }
 
 // Add this to your existing styles.css
