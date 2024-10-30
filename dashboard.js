@@ -5,6 +5,7 @@ document.addEventListener('DOMContentLoaded', () => {
   loadRecentlyClosed();
   loadResourceInsights();
   initializeEventListeners();
+  initializeTabNavigation();
 
   // Set up periodic refresh
   setInterval(loadResourceInsights, 30000); // Refresh every 30 seconds
@@ -99,32 +100,88 @@ async function loadResourceInsights() {
 
 async function updateSystemStats() {
   try {
-    // Update tab count
+    // Get all tabs
     const tabs = await chrome.tabs.query({});
     document.getElementById('tabCount').innerHTML = `
       <i class="material-icons">tab</i>
       Open Tabs: ${tabs.length}
     `;
 
-    // Update memory usage
-    const memoryInfo = await chrome.system.memory.getInfo();
-    const memoryUsage = Math.round(
-      (memoryInfo.capacity - memoryInfo.availableCapacity) / memoryInfo.capacity * 100
-    );
+    // Get Chrome memory info
+    const chromeMemory = await getChromeMemoryUsage();
     document.getElementById('memoryUsage').innerHTML = `
       <i class="material-icons">memory</i>
-      Memory Usage: ${memoryUsage}%
+      Chrome Memory: ${formatMemorySize(chromeMemory.total)}
+      (${chromeMemory.percentage}% of available)
     `;
 
-    // Estimate CPU usage based on tab count and activity
-    const estimatedCPU = Math.min(Math.round(tabs.length * 2), 100);
+    // Update CPU usage based on active tabs
+    const activeTabs = tabs.filter(tab => !tab.discarded);
+    const estimatedCPU = Math.min(Math.round(activeTabs.length * 3), 100);
     document.getElementById('cpuUsage').innerHTML = `
       <i class="material-icons">speed</i>
       Est. CPU Usage: ${estimatedCPU}%
     `;
   } catch (error) {
     console.error('Error updating system stats:', error);
+    document.getElementById('memoryUsage').innerHTML = `
+      <i class="material-icons">memory</i>
+      Memory Usage: Unable to fetch
+    `;
   }
+}
+
+async function getChromeMemoryUsage() {
+  const memoryInfo = await chrome.system.memory.getInfo();
+  const totalSystemMemory = memoryInfo.capacity;
+  
+  // Get memory used by Chrome tabs
+  const tabs = await chrome.tabs.query({});
+  let totalChromeMemory = 0;
+  
+  // Base memory usage for Chrome (approximate)
+  const baseChromeMemory = 250 * 1024 * 1024; // 250MB base
+  totalChromeMemory += baseChromeMemory;
+  
+  // Add memory for each tab
+  for (const tab of tabs) {
+    totalChromeMemory += estimateTabMemory(tab);
+  }
+
+  return {
+    total: totalChromeMemory,
+    percentage: Math.round((totalChromeMemory / totalSystemMemory) * 100)
+  };
+}
+
+function formatMemorySize(bytes) {
+  const units = ['B', 'KB', 'MB', 'GB'];
+  let size = bytes;
+  let unitIndex = 0;
+  
+  while (size >= 1024 && unitIndex < units.length - 1) {
+    size /= 1024;
+    unitIndex++;
+  }
+  
+  return `${size.toFixed(1)} ${units[unitIndex]}`;
+}
+
+function estimateTabMemory(tab) {
+  // Base memory for a tab
+  let memory = 50 * 1024 * 1024; // 50MB base
+  
+  // Add memory for special cases
+  if (tab.active) memory += 20 * 1024 * 1024; // Active tab
+  if (tab.audible) memory += 100 * 1024 * 1024; // Audio playing
+  if (tab.url) {
+    if (tab.url.includes('youtube.com')) memory += 200 * 1024 * 1024;
+    else if (tab.url.includes('google.com/maps')) memory += 150 * 1024 * 1024;
+    else if (tab.url.includes('mail.google.com')) memory += 100 * 1024 * 1024;
+    else if (tab.url.includes('docs.google.com')) memory += 120 * 1024 * 1024;
+  }
+  
+  return memory;
 }
 
 async function updateTabInsights() {
@@ -288,16 +345,6 @@ function getTabsProcessInfo(tabs) {
   }), {});
 }
 
-function estimateTabMemory(tab) {
-  let memory = 50 * 1024 * 1024; // Base: 50MB
-  
-  if (tab.audible) memory += 100 * 1024 * 1024;
-  if (tab.url?.includes('youtube.com')) memory += 200 * 1024 * 1024;
-  if (tab.url?.includes('google.com/maps')) memory += 150 * 1024 * 1024;
-  
-  return memory;
-}
-
 function estimateTabCPU(tab) {
   let cpu = 1; // Base: 1%
   
@@ -359,4 +406,22 @@ async function loadRecentlyClosed() {
     console.error('Error loading recently closed tabs:', error);
     container.innerHTML = '<div class="loading">Error loading recently closed tabs</div>';
   }
+}
+
+// Add this to your existing initialization code
+function initializeTabNavigation() {
+  const tabButtons = document.querySelectorAll('.tab-button');
+  
+  tabButtons.forEach(button => {
+    button.addEventListener('click', () => {
+      // Remove active class from all buttons and panes
+      document.querySelectorAll('.tab-button').forEach(btn => btn.classList.remove('active'));
+      document.querySelectorAll('.tab-pane').forEach(pane => pane.classList.remove('active'));
+      
+      // Add active class to clicked button and corresponding pane
+      button.classList.add('active');
+      const tabId = button.dataset.tab;
+      document.getElementById(tabId).classList.add('active');
+    });
+  });
 } 

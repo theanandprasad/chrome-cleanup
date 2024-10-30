@@ -13,7 +13,8 @@
     "background",
     "system.memory",
     "system.cpu",
-    "management"
+    "management",
+    "processes"
   ],
   "host_permissions": [
     "<all_urls>"

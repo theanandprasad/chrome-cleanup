@@ -14,89 +14,112 @@
       </div>
     </header>
 
-    <div class="dashboard-grid">
-      <!-- Quick Actions Card -->
-      <div class="card">
-        <h2><i class="material-icons">cleaning_services</i> Quick Actions</h2>
-        <button id="instantCleanup" class="primary-button">
-          <i class="material-icons">cleaning_services</i>
-          Clean Inactive Tabs Now
-        </button>
-      </div>
+    <!-- Tabs Navigation -->
+    <div class="tabs-navigation">
+      <button class="tab-button active" data-tab="tab-cleanup">
+        <i class="material-icons">cleaning_services</i>
+        Close Tabs
+      </button>
+      <button class="tab-button" data-tab="tab-resources">
+        <i class="material-icons">memory</i>
+        Resource Management
+      </button>
+    </div>
 
-      <!-- Time Settings Card -->
-      <div class="card">
-        <h2><i class="material-icons">timer</i> Inactivity Settings</h2>
-        <div class="time-input-group">
-          <input type="number" id="customTime" min="1" placeholder="Enter number">
-          <select id="timeUnit">
-            <option value="days">Days</option>
-            <option value="weeks">Weeks</option>
-            <option value="months">Months</option>
-          </select>
-          <button id="applyTimeSettings" class="secondary-button">
-            <i class="material-icons">check</i> Apply
-          </button>
-        </div>
-      </div>
+    <!-- Tab Content -->
+    <div class="tab-content">
+      <!-- Tab 1: Close Tabs -->
+      <div id="tab-cleanup" class="tab-pane active">
+        <div class="dashboard-grid">
+          <!-- Quick Actions Card -->
+          <div class="card">
+            <h2><i class="material-icons">cleaning_services</i> Quick Actions</h2>
+            <button id="instantCleanup" class="primary-button">
+              <i class="material-icons">cleaning_services</i>
+              Clean Inactive Tabs Now
+            </button>
+          </div>
 
-      <!-- System Stats Card -->
-      <div class="card">
-        <h2><i class="material-icons">memory</i> System Resources</h2>
-        <div class="resource-info">
-          <div id="memoryUsage">
-            <i class="material-icons">memory</i>
-            Memory Usage: Checking...
+          <!-- Time Settings Card -->
+          <div class="card">
+            <h2><i class="material-icons">timer</i> Inactivity Settings</h2>
+            <div class="time-input-group">
+              <input type="number" id="customTime" min="1" placeholder="Enter number">
+              <select id="timeUnit">
+                <option value="days">Days</option>
+                <option value="weeks">Weeks</option>
+                <option value="months">Months</option>
+              </select>
+              <button id="applyTimeSettings" class="secondary-button">
+                <i class="material-icons">check</i> Apply
+              </button>
+            </div>
           </div>
-          <div id="cpuUsage">
-            <i class="material-icons">speed</i>
-            CPU Usage: Checking...
-          </div>
-          <div id="tabCount">
-            <i class="material-icons">tab</i>
-            Open Tabs: Checking...
-          </div>
-        </div>
-      </div>
 
-      <!-- Tab Insights Card -->
-      <div class="card">
-        <h2>
-          <i class="material-icons">insights</i> 
-          Resource Insights
-          <button id="refreshInsights" class="icon-button" title="Refresh">
-            <i class="material-icons">refresh</i>
-          </button>
-        </h2>
-        <div class="insights-container">
-          <div class="tabs-insights">
-            <h3>Top Resource-Heavy Tabs</h3>
-            <div id="tabsList" class="insights-list">
-              <div class="loading">Loading tab data...</div>
+          <!-- Whitelist Card -->
+          <div class="card">
+            <h2><i class="material-icons">security</i> Protected Domains</h2>
+            <div class="whitelist-input">
+              <input type="text" id="whitelistInput" placeholder="Enter domain or URL to protect">
+              <button id="addToWhitelist" class="secondary-button">
+                <i class="material-icons">add</i> Add
+              </button>
+            </div>
+            <div id="whitelistItems" class="whitelist-list">
+              <div class="loading">Loading whitelist...</div>
+            </div>
+          </div>
+
+          <!-- Recently Closed Card -->
+          <div class="card">
+            <h2><i class="material-icons">history</i> Recently Closed</h2>
+            <div id="recentlyClosed" class="recently-closed-list">
+              <div class="loading">Loading recently closed tabs...</div>
             </div>
           </div>
         </div>
       </div>
 
-      <!-- Whitelist Card -->
-      <div class="card">
-        <h2><i class="material-icons">security</i> Protected Domains</h2>
-        <div class="whitelist-input">
-          <input type="text" id="whitelistInput" placeholder="Enter domain or URL to protect">
-          <button id="addToWhitelist" class="secondary-button">
-            <i class="material-icons">add</i> Add
-          </button>
-        </div>
-        <div id="whitelistItems" class="whitelist-list">
-          <div class="loading">Loading whitelist...</div>
-        </div>
-      </div>
+      <!-- Tab 2: Resource Management -->
+      <div id="tab-resources" class="tab-pane">
+        <div class="dashboard-grid">
+          <!-- System Stats Card -->
+          <div class="card">
+            <h2><i class="material-icons">memory</i> System Resources</h2>
+            <div class="resource-info">
+              <div id="memoryUsage">
+                <i class="material-icons">memory</i>
+                Memory Usage: Checking...
+              </div>
+              <div id="cpuUsage">
+                <i class="material-icons">speed</i>
+                CPU Usage: Checking...
+              </div>
+              <div id="tabCount">
+                <i class="material-icons">tab</i>
+                Open Tabs: Checking...
+              </div>
+            </div>
+          </div>
 
-      <!-- Recently Closed Card -->
-      <div class="card">
-        <h2><i class="material-icons">history</i> Recently Closed</h2>
-        <div id="recentlyClosed" class="recently-closed-list">
-          <div class="loading">Loading recently closed tabs...</div>
+          <!-- Tab Insights Card -->
+          <div class="card">
+            <h2>
+              <i class="material-icons">insights</i> 
+              Resource Insights
+              <button id="refreshInsights" class="icon-button" title="Refresh">
+                <i class="material-icons">refresh</i>
+              </button>
+            </h2>
+            <div class="insights-container">
+              <div class="tabs-insights">
+                <h3>Top Resource-Heavy Tabs</h3>
+                <div id="tabsList" class="insights-list">
+                  <div class="loading">Loading tab data...</div>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </div>
