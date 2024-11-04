@@ -6,6 +6,7 @@ document.addEventListener('DOMContentLoaded', () => {
   loadResourceInsights();
   initializeEventListeners();
   initializeTabNavigation();
+  initializeStorageListener();
 
   // Set up periodic refresh
   setInterval(loadResourceInsights, 30000); // Refresh every 30 seconds
@@ -202,7 +203,8 @@ async function updateTabInsights() {
     tabsList.innerHTML = sortedTabs.map(tab => `
       <div class="resource-item" data-tab-id="${tab.id}">
         <div class="resource-info">
-          <div class="resource-title" title="${tab.title}">
+          <div class="resource-title clickable" title="Click to activate this tab" data-tab-id="${tab.id}" data-window-id="${tab.windowId}">
+            <i class="material-icons">tab</i>
             ${tab.title}
           </div>
           <div class="resource-stats">
@@ -283,6 +285,7 @@ async function loadWhitelist() {
 
 // Utility Functions
 function addTabActionListeners() {
+  // Close tab button handlers
   document.querySelectorAll('.close-tab').forEach(button => {
     button.addEventListener('click', async (e) => {
       const tabId = parseInt(e.target.closest('.resource-item').dataset.tabId);
@@ -293,6 +296,25 @@ function addTabActionListeners() {
       } catch (error) {
         console.error('Error closing tab:', error);
         showNotification('Failed to close tab');
+      }
+    });
+  });
+
+  // Tab title click handlers
+  document.querySelectorAll('.resource-title.clickable').forEach(title => {
+    title.addEventListener('click', async () => {
+      const tabId = parseInt(title.dataset.tabId);
+      const windowId = parseInt(title.dataset.windowId);
+      
+      try {
+        // Focus the window first
+        await chrome.windows.update(windowId, { focused: true });
+        // Then activate the tab
+        await chrome.tabs.update(tabId, { active: true });
+        showNotification('Switched to selected tab');
+      } catch (error) {
+        console.error('Error switching to tab:', error);
+        showNotification('Failed to switch to tab');
       }
     });
   });
@@ -359,21 +381,22 @@ function estimateTabCPU(tab) {
 async function loadRecentlyClosed() {
   const container = document.getElementById('recentlyClosed');
   try {
-    const { recentlyClosed } = await chrome.storage.local.get('recentlyClosed');
+    const { recentlyClosed = [] } = await chrome.storage.local.get('recentlyClosed');
     
     if (!recentlyClosed || recentlyClosed.length === 0) {
       container.innerHTML = '<div class="loading">No recently closed tabs</div>';
       return;
     }
 
-    container.innerHTML = recentlyClosed.map(tab => `
-      <div class="resource-item">
+    // Create new content with animation
+    const newContent = recentlyClosed.map(tab => `
+      <div class="resource-item animate-in">
         <div class="resource-info">
           <div class="resource-title" title="${tab.title}">${tab.title}</div>
           <div class="resource-stats">
             <span class="timestamp">
               <i class="material-icons">access_time</i>
-              ${new Date(tab.timestamp).toLocaleTimeString()}
+              Closed ${formatTimeAgo(tab.timestamp)}
             </span>
           </div>
         </div>
@@ -385,26 +408,49 @@ async function loadRecentlyClosed() {
       </div>
     `).join('');
 
+    container.innerHTML = newContent;
+
     // Add restore functionality
-    document.querySelectorAll('.restore-tab').forEach(button => {
-      button.addEventListener('click', async () => {
-        try {
-          await chrome.tabs.create({ url: button.dataset.url });
-          showNotification('Tab restored');
-          // Remove from recently closed list
-          const { recentlyClosed } = await chrome.storage.local.get('recentlyClosed');
-          const updatedList = recentlyClosed.filter(tab => tab.url !== button.dataset.url);
-          await chrome.storage.local.set({ recentlyClosed });
-          loadRecentlyClosed(); // Refresh the list
-        } catch (error) {
-          console.error('Error restoring tab:', error);
-          showNotification('Failed to restore tab');
-        }
-      });
-    });
+    addRestoreTabListeners();
   } catch (error) {
     console.error('Error loading recently closed tabs:', error);
     container.innerHTML = '<div class="loading">Error loading recently closed tabs</div>';
+  }
+}
+
+function addRestoreTabListeners() {
+  document.querySelectorAll('.restore-tab').forEach(button => {
+    button.addEventListener('click', async () => {
+      try {
+        await chrome.tabs.create({ url: button.dataset.url });
+        showNotification('Tab restored');
+        
+        // Remove from recently closed list
+        const { recentlyClosed } = await chrome.storage.local.get('recentlyClosed');
+        const updatedList = recentlyClosed.filter(tab => tab.url !== button.dataset.url);
+        await chrome.storage.local.set({ recentlyClosed: updatedList });
+      } catch (error) {
+        console.error('Error restoring tab:', error);
+        showNotification('Failed to restore tab');
+      }
+    });
+  });
+}
+
+function formatTimeAgo(timestamp) {
+  const seconds = Math.floor((Date.now() - timestamp) / 1000);
+
+  if (seconds < 60) {
+    return 'just now';
+  } else if (seconds < 3600) {
+    const minutes = Math.floor(seconds / 60);
+    return `${minutes} minute${minutes > 1 ? 's' : ''} ago`;
+  } else if (seconds < 86400) {
+    const hours = Math.floor(seconds / 3600);
+    return `${hours} hour${hours > 1 ? 's' : ''} ago`;
+  } else {
+    const days = Math.floor(seconds / 86400);
+    return `${days} day${days > 1 ? 's' : ''} ago`;
   }
 }
 
@@ -423,5 +469,16 @@ function initializeTabNavigation() {
       const tabId = button.dataset.tab;
       document.getElementById(tabId).classList.add('active');
     });
+  });
+}
+
+// Add this to your existing initialization code
+function initializeStorageListener() {
+  // Listen for changes in chrome.storage
+  chrome.storage.onChanged.addListener((changes, namespace) => {
+    if (namespace === 'local' && changes.recentlyClosed) {
+      // Update only the recently closed section
+      loadRecentlyClosed();
+    }
   });
 } 
